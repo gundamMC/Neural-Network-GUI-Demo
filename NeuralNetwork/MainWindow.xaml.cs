@@ -18,7 +18,9 @@ namespace NeuralNetwork
             InitializeComponent();
             TypeToIntGrid.ItemsSource = TypeIntsList;
 
-            TypeIntsList.Add(new TypeInts() { Name = "ha", ValueString = "1,2,3" });
+            TypeIntsList.Add(new TypeInts() { Name = "Iris-setosa", ValueString = "0,0,1" });
+            TypeIntsList.Add(new TypeInts() { Name = "Iris-versicolor", ValueString = "0,1,0" });
+            TypeIntsList.Add(new TypeInts() { Name = "Iris-virginica", ValueString = "1,0,0" });
         }
 
         
@@ -27,7 +29,9 @@ namespace NeuralNetwork
 
         public double[][] Instances; //data
 
-        
+        public int numInputs = 0;
+        public int numOutputs = 0;
+        public int numNodes = 0;
 
         private void DirectoryButton_Click(object sender, RoutedEventArgs e)
         {
@@ -44,15 +48,19 @@ namespace NeuralNetwork
                 return;
             }
 
-            foreach (TypeInts i in TypeIntsList)
-                foreach(char j in i.ValueString)
-                    if (!(char.IsDigit(j) || j.Equals(',')))
-                    {
-                        MessageBox.Show("Please make sure int[] values only contain integers and commas");
-                        return;
-                    }
+            //foreach (TypeInts i in TypeIntsList)
+            //{
+            //    if (String.IsNullOrWhiteSpace(i.Name) || String.IsNullOrWhiteSpace(i.ValueString))
+            //        TypeIntsList.Remove(i);
 
+            //    foreach (char j in i.ValueString)
+            //        if (!(char.IsDigit(j) || j.Equals(',')))
+            //        {
+            //            MessageBox.Show("Please make sure int[] values only contain integers and commas");
+            //            return;
+            //        }
 
+            //}
 
             OpenFileDialog fileDialog = new OpenFileDialog()
             {
@@ -64,9 +72,14 @@ namespace NeuralNetwork
             {
                 string[] lines = File.ReadAllLines(fileDialog.FileName);
 
-                foreach (string i in lines)
+                for(int i = 0; i < lines.Count(); i++)
                     foreach (TypeInts j in TypeIntsList)
-                        i.Replace(j.Name, j.ValueString);   // Replaces types with int values
+                    {
+                        lines[i] = lines[i].Replace(j.Name, j.ValueString);   // Replaces types with int values
+                    }
+
+                Console.WriteLine(lines[0]);
+                Console.Write(lines[0].Split(char.Parse(separatorBox.Text)).Count());
 
                 if (lines[0].Split(char.Parse(separatorBox.Text)).Count() != int.Parse(numInputBox.Text) + int.Parse(numOutputBox.Text))
                 {
@@ -98,7 +111,47 @@ namespace NeuralNetwork
 
         private void StartNeuralNetwork()       //Assuming that GetInstances has already run and Instance has value
         {
-            MakeTrainTest(Instances, out double[][] trainData, out double[][] testData, TrainPercentSlider.Value);
+            ConsoleTextbox.Text = "Getting started...";
+
+            numInputs = int.Parse(numInputBox.Text);
+            numOutputs = int.Parse(numOutputBox.Text);
+            numNodes = int.Parse(numNodeBox.Text);
+
+            ConsoleTextbox.Text += "\nSeparating train and test data.";
+            MakeTrainTest(Instances, out double[][] trainData, out double[][] testData, TrainPercentSlider.Value / 100);
+
+
+            ConsoleTextbox.Text += "\nNormalizing all input datas.";
+            int[] inputs = Enumerable.Range(0, numInputs).ToArray(); //Creates int[] that generates 0,1,2...numInput -1 as numInput is the count
+
+            Normalize(trainData, inputs);
+            Normalize(testData, inputs);        //Quick note: maybe we could normalize the data first and then separate them...?
+
+            ConsoleTextbox.Text += "\nCreating neural network.";
+            NeuralNetworkObject nn = new NeuralNetworkObject(numInputs, numNodes, numOutputs);
+
+            ConsoleTextbox.Text += "\nInitializing weights.";
+            nn.InitializeWeights();
+
+            int MaxEpochs = int.Parse(MaxEpochBox.Text);
+            double LearnRate = double.Parse(LearnRateBox.Text);
+            double Momentum = Double.Parse(MomentumBox.Text);
+            double WeightDecay = Double.Parse(WeightDecayBox.Text);
+            double ExitError = Double.Parse(ExitErrorBox.Text);
+
+            ConsoleTextbox.Text += "\nTraining.";
+            nn.Train(trainData, MaxEpochs, LearnRate, Momentum, WeightDecay, ExitError);
+            ConsoleTextbox.Text += "\nTraining complete";
+
+            double[] weights = nn.GetWeights();
+            ConsoleTextbox.Text += "\nFinal neural network weights and bias values:";
+            ShowVector(weights, 10, 3, true);
+
+            double trainAcc = nn.Accuracy(trainData);
+            ConsoleTextbox.Text += "\nAccuracy on training data = " + trainAcc.ToString("F4");
+
+            double testAcc = nn.Accuracy(testData);
+            ConsoleTextbox.Text += "\nAccuracy on test data = " + testAcc.ToString("F4");
         }
 
 
@@ -112,6 +165,12 @@ namespace NeuralNetwork
         {
             if (e.Text.Length != 1) return;
             e.Handled = !(String.Equals(e.Text, ",") || Char.IsDigit(Char.Parse(e.Text)));
+        }
+
+        private void DoubleOnly(object sender, TextCompositionEventArgs e)
+        {
+            if (e.Text.Length != 1) return;
+            e.Handled = !(String.Equals(e.Text, ".") || Char.IsDigit(Char.Parse(e.Text)));
         }
 
 
@@ -183,14 +242,14 @@ namespace NeuralNetwork
             }
         } // Normalize
 
-        static void ShowVector(double[] vector, int valsPerRow, int decimals, bool newLine)
+        void ShowVector(double[] vector, int valsPerRow, int decimals, bool newLine)
         {
             for (int i = 0; i < vector.Length; ++i)
             {
-                if (i % valsPerRow == 0) Console.WriteLine("");
-                Console.Write(vector[i].ToString("F" + decimals).PadLeft(decimals + 4) + " ");
+                if (i % valsPerRow == 0) ConsoleTextbox.Text += "\n";
+                ConsoleTextbox.Text += vector[i].ToString("F" + decimals).PadLeft(decimals + 4) + " ";
             }
-            if (newLine == true) Console.WriteLine("");
+            if (newLine == true) ConsoleTextbox.Text += "\n";
         }
 
 

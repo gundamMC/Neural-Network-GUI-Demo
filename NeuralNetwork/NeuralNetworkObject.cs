@@ -388,7 +388,7 @@ namespace NeuralNetwork
 
         // ----------------------------------------------------------------------------------------
 
-        public void Train(double[][] trainData, int maxEprochs, double learnRate, double momentum, double weightDecay)
+        public void Train(double[][] trainData, int maxEprochs, double learnRate, double momentum, double weightDecay, double exitError)
         {
             // train a back-prop style NN classifier using learning rate and momentum
             // weight decay reduces the magnitude of a weight value over time unless that value
@@ -405,7 +405,7 @@ namespace NeuralNetwork
             while (epoch < maxEprochs)
             {
                 double mse = MeanSquaredError(trainData);
-                if (mse < 0.020) break; //consider passing value in as parameter
+                if (mse < exitError) break; //train until mse reaches the goal exitError
 
                 Shuffle(sequence);
                 for (int i = 0; i < trainData.Length; ++i)

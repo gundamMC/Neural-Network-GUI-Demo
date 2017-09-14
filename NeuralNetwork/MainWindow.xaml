@@ -5,11 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NeuralNetwork"
         mc:Ignorable="d"
-        Title="Neural Network Demo" Height="350" Width="525" WindowStartupLocation="Manual">
+        Title="Neural Network Demo" Height="564" Width="525" WindowStartupLocation="Manual">
     <Grid>
-        <Slider x:Name="TrainPercentSlider" HorizontalAlignment="Left" Height="28" Margin="196,90,0,0" VerticalAlignment="Top" Width="143" Maximum="100" SmallChange="0" Value="80"/>
-        <Button x:Name="DirectoryButton" Content="Load Data File" HorizontalAlignment="Left" Height="30" Margin="10,270,0,0" VerticalAlignment="Top" Width="143" Click="DirectoryButton_Click" FontFamily="Microsoft YaHei UI"/>
-        <DataGrid x:Name="TypeToIntGrid" HorizontalAlignment="Left" Height="183" Margin="10,72,0,0" VerticalAlignment="Top" Width="143" ColumnWidth="Auto" AutoGenerateColumns="False" HeadersVisibility="Column" CanUserAddRows="True" CanUserDeleteRows="True">
+        <Slider x:Name="TrainPercentSlider" HorizontalAlignment="Left" Height="28" Margin="10,159,0,0" VerticalAlignment="Top" Width="143" Maximum="100" SmallChange="0" Value="80"/>
+        <Button x:Name="DirectoryButton" Content="Load Data File" HorizontalAlignment="Left" Height="30" Margin="10,37,0,0" VerticalAlignment="Top" Width="143" Click="DirectoryButton_Click" FontFamily="Microsoft YaHei UI"/>
+        <DataGrid x:Name="TypeToIntGrid" HorizontalAlignment="Left" Height="183" Margin="10,209,0,0" VerticalAlignment="Top" Width="143" ColumnWidth="Auto" AutoGenerateColumns="False" HeadersVisibility="Column" CanUserAddRows="True" CanUserDeleteRows="True" VerticalScrollBarVisibility="Auto" FontFamily="Microsoft YaHei UI" FontSize="11">
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding Name}" CanUserResize="False" ClipboardContentBinding="{x:Null}" Header="String" Width="*"/>
                 <DataGridTemplateColumn CanUserResize="False" ClipboardContentBinding="{x:Null}" Header="Int[] value" Width="*">
@@ -21,10 +21,16 @@
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
-        <TextBox x:Name="numInputBox" HorizontalAlignment="Left" Height="35" Margin="196,134,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
-        <TextBox x:Name="numNodeBox" HorizontalAlignment="Left" Height="35" Margin="196,174,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
-        <TextBox x:Name="numOutputBox" HorizontalAlignment="Left" Height="35" Margin="196,214,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
-        <TextBox x:Name="separatorBox" HorizontalAlignment="Left" Height="35" Margin="316,134,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" MaxLength="1"/>
+        <TextBox x:Name="numInputBox" HorizontalAlignment="Left" Height="35" Margin="216,32,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
+        <TextBox x:Name="numNodeBox" HorizontalAlignment="Left" Height="35" Margin="216,72,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
+        <TextBox x:Name="numOutputBox" HorizontalAlignment="Left" Height="35" Margin="216,112,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
+        <TextBox x:Name="separatorBox" HorizontalAlignment="Left" Height="35" Margin="10,93,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="48" MaxLength="1"/>
+        <TextBox x:Name="MaxEpochBox" HorizontalAlignment="Left" Height="35" Margin="364,32,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
+        <TextBox x:Name="LearnRateBox" HorizontalAlignment="Left" Height="35" Margin="364,72,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="DoubleOnly"/>
+        <TextBox x:Name="MomentumBox" HorizontalAlignment="Left" Height="35" Margin="364,112,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="DoubleOnly"/>
+        <TextBox x:Name="WeightDecayBox" HorizontalAlignment="Left" Height="35" Margin="364,152,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="DoubleOnly"/>
+        <TextBox x:Name="ExitErrorBox" HorizontalAlignment="Left" Height="35" Margin="364,192,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="DoubleOnly"/>
+        <TextBox x:Name="ConsoleTextbox" HorizontalAlignment="Left" Height="175" Margin="216,239,0,0" TextWrapping="Wrap" Text="Please load a data file and hit start" VerticalAlignment="Top" Width="242" FontFamily="Microsoft YaHei UI" VerticalScrollBarVisibility="Visible" UseLayoutRounding="True" IsReadOnly="True" IsUndoEnabled="False"/>
 
     </Grid>
 </Window>
