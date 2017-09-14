@@ -25,12 +25,65 @@ namespace NeuralNetwork
 
         public List<TypeInts> TypeIntsList = new List<TypeInts>();
 
-        public double[][] Instances;
+        public double[][] Instances; //data
+
+        
+
+        private void DirectoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            
+            if(String.IsNullOrWhiteSpace(numInputBox.Text) || String.IsNullOrWhiteSpace(numNodeBox.Text) || String.IsNullOrWhiteSpace(numOutputBox.Text))
+            {
+                MessageBox.Show("Please enter the number of inputs, nodes, and outputs");
+                return;
+            }
+
+            if (separatorBox.Text.Count() != 1)
+            {
+                MessageBox.Show("Please make sure the separator is a single character");
+                return;
+            }
+
+            foreach (TypeInts i in TypeIntsList)
+                foreach(char j in i.ValueString)
+                    if (!(char.IsDigit(j) || j.Equals(',')))
+                    {
+                        MessageBox.Show("Please make sure int[] values only contain integers and commas");
+                        return;
+                    }
+
+
+
+            OpenFileDialog fileDialog = new OpenFileDialog()
+            {
+                Filter = "All Files (*.*)|*.*",
+                FilterIndex = 1
+            };
+
+            if (fileDialog.ShowDialog() == true)
+            {
+                string[] lines = File.ReadAllLines(fileDialog.FileName);
+
+                foreach (string i in lines)
+                    foreach (TypeInts j in TypeIntsList)
+                        i.Replace(j.Name, j.ValueString);   // Replaces types with int values
+
+                if (lines[0].Split(char.Parse(separatorBox.Text)).Count() != int.Parse(numInputBox.Text) + int.Parse(numOutputBox.Text))
+                {
+                    MessageBox.Show("Error: data count does not match.\nPlease note that input/output numbers are values AFTER processing categories");
+                    return;
+                }
+
+                Instances = GetInstances(lines, Char.Parse(separatorBox.Text));
+
+                StartNeuralNetwork();
+            }
+        }
 
         double[][] GetInstances(string[] lines, char separator)
         {
 
-            double[][] result = new double[lines.Count()][];
+            double[][] result = new double[lines.Count()][]; //2 dimension array, total data * features
 
             for (int i = 0; i < lines.Count(); ++i)
             {
@@ -43,6 +96,23 @@ namespace NeuralNetwork
             return result;
         }
 
+        private void StartNeuralNetwork()       //Assuming that GetInstances has already run and Instance has value
+        {
+            MakeTrainTest(Instances, out double[][] trainData, out double[][] testData, TrainPercentSlider.Value);
+        }
+
+
+        private void NumericalOnly(object sender, TextCompositionEventArgs e)
+        {
+            if (e.Text.Length != 1) return;
+            e.Handled = !Char.IsDigit(Char.Parse(e.Text));
+        }
+
+        private void ColumnNumericalOnly(object sender, TextCompositionEventArgs e)
+        {
+            if (e.Text.Length != 1) return;
+            e.Handled = !(String.Equals(e.Text, ",") || Char.IsDigit(Char.Parse(e.Text)));
+        }
 
 
         static void MakeTrainTest(double[][] allData, out double[][] trainData, out double[][] testData, double trainPercent)
@@ -123,61 +193,6 @@ namespace NeuralNetwork
             if (newLine == true) Console.WriteLine("");
         }
 
-        private void DirectoryButton_Click(object sender, RoutedEventArgs e)
-        {
-            
-            if(String.IsNullOrWhiteSpace(numInputBox.Text) || String.IsNullOrWhiteSpace(numNodeBox.Text) || String.IsNullOrWhiteSpace(numOutputBox.Text))
-            {
-                MessageBox.Show("Please enter the number of inputs, nodes, and outputs");
-                return;
-            }
-
-            if (separatorBox.Text.Count() != 1)
-            {
-                MessageBox.Show("Please make sure the separator is a single character");
-                return;
-            }
-
-            foreach (TypeInts i in TypeIntsList)
-                foreach(char j in i.ValueString)
-                    if (!(char.IsDigit(j) || j.Equals(',')))
-                    {
-                        MessageBox.Show("Please make sure int[] values only contain integers and commas");
-                        return;
-                    }
-
-            
-
-            OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Filter = "All Files (*.*)|*.*";
-            fileDialog.FilterIndex = 1;
-
-            if (fileDialog.ShowDialog() == true)
-            {
-                string[] lines = File.ReadAllLines(fileDialog.FileName);
-
-                foreach (string i in lines)
-                    foreach (TypeInts j in TypeIntsList)
-                        i.Replace(j.Name, j.ValueString);
-
-                if(lines[0].Split(char.Parse(separatorBox.Text)).Count() != int.Parse(numInputBox.Text) + int.Parse(numOutputBox.Text))
-
-                Instances = GetInstances(lines, ',');
-            }
-        }
-
-
-        private void NumericalOnly(object sender, TextCompositionEventArgs e)
-        {
-            if (e.Text.Length != 1) return;
-            e.Handled = !Char.IsDigit(Char.Parse(e.Text));
-        }
-
-        private void ColumnNumericalOnly(object sender, TextCompositionEventArgs e)
-        {
-            if (e.Text.Length != 1) return;
-            e.Handled = !(String.Equals(e.Text, ",") || Char.IsDigit(Char.Parse(e.Text)));
-        }
 
     } //public class Mainwindow
 
