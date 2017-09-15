@@ -89,7 +89,7 @@ namespace NeuralNetwork
 
                 Instances = GetInstances(lines, Char.Parse(separatorBox.Text));
 
-                StartNeuralNetwork();
+                
             }
         }
 
@@ -252,7 +252,15 @@ namespace NeuralNetwork
             if (newLine == true) ConsoleTextbox.Text += "\n";
         }
 
-
+        private void StartButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (Instances.Count() == 0)
+            {
+                MessageBox.Show("Please load data file first");
+                return;
+            }
+            StartNeuralNetwork();
+        }
     } //public class Mainwindow
 
     public class TypeInts
