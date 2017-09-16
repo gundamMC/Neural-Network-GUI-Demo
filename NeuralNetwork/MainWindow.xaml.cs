@@ -17,10 +17,6 @@ namespace NeuralNetwork
         {
             InitializeComponent();
             TypeToIntGrid.ItemsSource = TypeIntsList;
-
-            TypeIntsList.Add(new TypeInts() { Name = "Iris-setosa", ValueString = "0,0,1" });
-            TypeIntsList.Add(new TypeInts() { Name = "Iris-versicolor", ValueString = "0,1,0" });
-            TypeIntsList.Add(new TypeInts() { Name = "Iris-virginica", ValueString = "1,0,0" });
         }
 
         
@@ -33,34 +29,10 @@ namespace NeuralNetwork
         public int numOutputs = 0;
         public int numNodes = 0;
 
+        public string[] rawData;
+
         private void DirectoryButton_Click(object sender, RoutedEventArgs e)
         {
-            
-            if(String.IsNullOrWhiteSpace(numInputBox.Text) || String.IsNullOrWhiteSpace(numNodeBox.Text) || String.IsNullOrWhiteSpace(numOutputBox.Text))
-            {
-                MessageBox.Show("Please enter the number of inputs, nodes, and outputs");
-                return;
-            }
-
-            if (separatorBox.Text.Count() != 1)
-            {
-                MessageBox.Show("Please make sure the separator is a single character");
-                return;
-            }
-
-            //foreach (TypeInts i in TypeIntsList)
-            //{
-            //    if (String.IsNullOrWhiteSpace(i.Name) || String.IsNullOrWhiteSpace(i.ValueString))
-            //        TypeIntsList.Remove(i);
-
-            //    foreach (char j in i.ValueString)
-            //        if (!(char.IsDigit(j) || j.Equals(',')))
-            //        {
-            //            MessageBox.Show("Please make sure int[] values only contain integers and commas");
-            //            return;
-            //        }
-
-            //}
 
             OpenFileDialog fileDialog = new OpenFileDialog()
             {
@@ -70,27 +42,66 @@ namespace NeuralNetwork
 
             if (fileDialog.ShowDialog() == true)
             {
-                string[] lines = File.ReadAllLines(fileDialog.FileName);
+                rawData = File.ReadAllLines(fileDialog.FileName);
 
-                for(int i = 0; i < lines.Count(); i++)
-                    foreach (TypeInts j in TypeIntsList)
-                    {
-                        lines[i] = lines[i].Replace(j.Name, j.ValueString);   // Replaces types with int values
-                    }
-
-                Console.WriteLine(lines[0]);
-                Console.Write(lines[0].Split(char.Parse(separatorBox.Text)).Count());
-
-                if (lines[0].Split(char.Parse(separatorBox.Text)).Count() != int.Parse(numInputBox.Text) + int.Parse(numOutputBox.Text))
+                if(rawData.Count() == 0)
                 {
-                    MessageBox.Show("Error: data count does not match.\nPlease note that input/output numbers are values AFTER processing categories");
+                    MessageBox.Show("file does not contain any information");
                     return;
                 }
 
-                Instances = GetInstances(lines, Char.Parse(separatorBox.Text));
 
-                
+                GetStringOptions(rawData, ',');
+                ConsoleTextbox.Text = "Loaded data.";
             }
+        }
+
+        void GetStringOptions(string[] lines, char separator)
+        {
+            string[][] splitedData = new string[lines.Count()][]; //2 dimension array, total data * features
+
+            for (int i = 0; i < lines.Count(); ++i)
+            {
+                splitedData[i] = lines[i].Split(separator);
+            }
+
+            List<int> stringColumns  = new List<int>();
+            
+
+            for (int i = 0; i < splitedData[0].Count(); ++i)
+            {
+                if(!double.TryParse(splitedData[0][i], out double value)) //if value does not parse as double
+                    stringColumns.Add(i);
+            }
+
+            Console.WriteLine(stringColumns[0]);
+
+            foreach (int i in stringColumns)
+            {
+                int options = 0;
+                int startingIndex = TypeIntsList.Count(); //index of the first item
+
+                for (int j = 0; j < splitedData.Count(); ++j)
+                {
+                    if(!TypeIntsList.Any(x => x.Name == splitedData[j][i]))     // adds value to list, also counts how many total options there are
+                    {
+                        TypeIntsList.Add(new TypeInts() { Name = splitedData[j][i], ValueString = "", Index = i });
+                        options++;
+                        Console.WriteLine(splitedData[j][i]);
+                    }
+                }
+
+                for(int option = 0; option < options; option++)     //generates an int array with a single 1 to activate different inputs
+                {
+                    int[] test = new int[options];
+                    test[option] = 1;
+                    TypeIntsList[startingIndex + option].ValueString = string.Join(",", test);
+                }
+            }
+
+
+
+            TypeToIntGrid.Items.Refresh();  //refreshes the grid (new items won't show without this)
         }
 
         double[][] GetInstances(string[] lines, char separator)
@@ -254,11 +265,40 @@ namespace NeuralNetwork
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
+
+
+            if (String.IsNullOrWhiteSpace(numInputBox.Text) || String.IsNullOrWhiteSpace(numNodeBox.Text) || String.IsNullOrWhiteSpace(numOutputBox.Text))
+            {
+                MessageBox.Show("Please enter the number of inputs, nodes, and outputs");
+                return;
+            }
+
+            if (separatorBox.Text.Count() != 1)
+            {
+                MessageBox.Show("Please make sure the separator is a single character");
+                return;
+            }
+
             if (Instances.Count() == 0)
             {
                 MessageBox.Show("Please load data file first");
                 return;
             }
+
+            for (int i = 0; i < rawData.Count(); i++)
+                foreach (TypeInts j in TypeIntsList)
+                {
+                    rawData[i] = rawData[i].Replace(j.Name, j.ValueString);   // Replaces types with int values
+                }
+
+            if (rawData[0].Split(char.Parse(separatorBox.Text)).Count() != int.Parse(numInputBox.Text) + int.Parse(numOutputBox.Text))
+            {
+                MessageBox.Show("Error: data count does not match.\nPlease note that input/output numbers are values AFTER processing categories");
+                return;
+            }
+
+            Instances = GetInstances(rawData, Char.Parse(separatorBox.Text));
+
             StartNeuralNetwork();
         }
     } //public class Mainwindow
@@ -268,5 +308,7 @@ namespace NeuralNetwork
         public string Name { get; set; }
 
         public string ValueString { get; set; }
+
+        public int Index { get; set; }
     }
 }
