@@ -8,6 +8,7 @@ namespace NeuralNetwork
 
         private int numInput;
         private int numHidden;
+        private int numLayer;
         private int numOutput;
 
         private double[] inputs;
@@ -15,9 +16,11 @@ namespace NeuralNetwork
 
         //i = input, o = output, h = hideen
 
-        private double[][] ihWeights; //input-hiddedn
-        private double[] hBiases;
+        private double[][] ihWeights; //input-hidden
+        private double[][] hBiases;   //[layer][node]
         private double[] hOutputs;
+
+        private double[][][] nodeWeights;   //[layer][node1][node2]
 
         private double[][] hoWeights; //hidden-output
         private double[] oBiases;
@@ -26,15 +29,15 @@ namespace NeuralNetwork
 
         // back-prop specific arrays
         private double[] oGrads; //output gradients for back-propagation
-        private double[] hGrads; // hidden gradients for back-propagation
+        private double[][] hGrads; // hidden gradients for back-propagation
 
         // back-prop momentum specific arrays, i.e. to know how much too add/subtract
         private double[][] ihPrevWeightsDelta;  // for momentum with back-propagation
-        private double[] hPrevBiasesDelta;
+        private double[][] hPrevBiasesDelta;
         private double[][] hoPrevWeightsDelta;
         private double[] oPrevBiasesDelta;
 
-        public NeuralNetworkObject(int numInput, int numHidden, int numOutput)
+        public NeuralNetworkObject(int numInput, int numHidden, int numLayer, int numOutput)
         {
             rnd = new Random(0); // for Initializing weights and shuffling
 
@@ -45,7 +48,7 @@ namespace NeuralNetwork
             this.inputs = new double[numInput];
 
             this.ihWeights = MakeMatrix(numInput, numHidden); //Weights from input nodes to hidden nodes
-            this.hBiases = new double[numHidden];
+            this.hBiases = MakeMatrix(numLayer, numHidden);
             this.hOutputs = new double[numHidden];
 
             this.hoWeights = MakeMatrix(numHidden, numOutput); //Weights from hidden nodes to output nodes
@@ -54,11 +57,11 @@ namespace NeuralNetwork
             this.outputs = new double[numOutput];
 
             // back-prop related arrays
-            this.hGrads = new double[numHidden];
+            this.hGrads = MakeMatrix(numLayer, numHidden);
             this.oGrads = new double[numOutput];
 
             this.ihPrevWeightsDelta = MakeMatrix(numInput, numHidden);
-            this.hPrevBiasesDelta = new double[numHidden];
+            this.hPrevBiasesDelta = MakeMatrix(numLayer, numHidden);
             this.hoPrevWeightsDelta = MakeMatrix(numHidden, numOutput);
             this.oPrevBiasesDelta = new double[numOutput];
         }
@@ -75,128 +78,39 @@ namespace NeuralNetwork
             //for some magical reason
         }
 
-        public override string ToString()
-        {
-            string s = "";
-            s += "===============================\n";
-            s += "numInput = " + numInput + " numHidden = " + numHidden + " numOutput = " + numOutput + "\n\n";
-
-            s += "inputs: \n";
-            for (int i = 0; i < inputs.Length; ++i)
-                s += inputs[i].ToString("F2") + " ";
-            s += "\n\n";
-
-            s += "ihWeights: \n";
-            for (int i = 0; i < ihWeights.Length; ++i)
-            {
-                for (int j = 0; j < ihWeights[i].Length; ++j)
-                {
-                    s += ihWeights[i][j].ToString("F4") + " ";
-                }
-                s += "\n";
-            }
-            s += "\n";
-
-            s += "hBiases: \n";
-            for (int i = 0; i < hBiases.Length; ++i)
-                s += hBiases[i].ToString("F4") + " ";
-            s += "\n\n";
-
-            s += "hOutputs: \n";
-            for (int i = 0; i < hOutputs.Length; ++i)
-                s += hOutputs[i].ToString("F4") + " ";
-            s += "\n\n";
-
-            s += "hoWeights: \n";
-            for (int i = 0; i < hoWeights.Length; ++i)
-            {
-                for (int j = 0; j < hoWeights[i].Length; ++j)
-                {
-                    s += hoWeights[i][j].ToString("F4") + " ";
-                }
-                s += "\n";
-            }
-            s += "\n";
-
-            s += "oBiases: \n";
-            for (int i = 0; i < oBiases.Length; ++i)
-                s += oBiases[i].ToString("F4") + " ";
-            s += "\n\n";
-
-            s += "hGrads: \n";
-            for (int i = 0; i < hGrads.Length; ++i)
-                s += hGrads[i].ToString("F4") + " ";
-            s += "\n\n";
-
-            s += "oGrads: \n";
-            for (int i = 0; i < oGrads.Length; ++i)
-                s += oGrads[i].ToString("F4") + " ";
-            s += "\n\n";
-
-            s += "ihPrevWeightsDelta: \n";
-            for (int i = 0; i < ihPrevWeightsDelta.Length; ++i)
-            {
-                for (int j = 0; j < ihPrevWeightsDelta[i].Length; ++j)
-                {
-                    s += ihPrevWeightsDelta[i][j].ToString("F4") + " ";
-                }
-                s += "\n";
-            }
-            s += "\n";
-
-            s += "hPrevBiasesDelta: \n";
-            for (int i = 0; i < hPrevBiasesDelta.Length; ++i)
-                s += hPrevBiasesDelta[i].ToString("F4") + " ";
-            s += "\n\n";
-
-            s += "hoPrevWeightsDelta: \n";
-            for (int i = 0; i < hoPrevWeightsDelta.Length; ++i)
-            {
-                for (int j = 0; j < hoPrevWeightsDelta[i].Length; ++j)
-                {
-                    s += hoPrevWeightsDelta[i][j].ToString("F4") + " ";
-                }
-                s += "\n";
-            }
-            s += "\n";
-
-            s += "oPrevBiasesDelta: \n";
-            for (int i = 0; i < oPrevBiasesDelta.Length; ++i)
-                s += oPrevBiasesDelta[i].ToString("F4") + " ";
-            s += "\n\n";
-
-            s += "outputs: \n";
-            for (int i = 0; i < outputs.Length; ++i)
-                s += outputs[i].ToString("F2") + " ";
-            s += "\n\n";
-
-            s += "===============================\n";
-            return s;
-        } //ToString();
 
         // ----------------------------------------------------------------------------------------
 
         public void SetWeights(double[] weights)
         {
             //copy weights and biases in wieghts[] array to i-h weights, i-h biases, h-o weights, h-o biases
-            int numWeights = (numInput * numHidden) + (numHidden * numOutput) + numHidden + numOutput; //last two are biases
+            int numWeights = (numInput * numHidden) + (numHidden * numOutput) + (numHidden * numLayer) + (int)(Math.Pow(numHidden, numLayer)) + numOutput;
+                             //Input to 1st layer      last layer to output      node bias                Node to node (node^layer e.g. 3x3x3)   output bias
             if (weights.Length != numWeights)
                 throw new Exception("Bad weights array length: "); //prevents out of bound error
 
             int k = 0; // points into weights param
 
             //assigning weights, foreach x -> foreach y -> assign value
-            //input -> hidden weights
+            //input -> 1st layer
             for (int i = 0; i < numInput; ++i)
                 for (int j = 0; j < numHidden; ++j)
                     ihWeights[i][j] = weights[k++];
-            //hidden biases
-            for (int i = 0; i < numHidden; ++i)
-                hBiases[i] = weights[k++];
-            //hidden -> output weights
+            //last layer -> output weights
             for (int i = 0; i < numHidden; ++i)
                 for (int j = 0; j < numOutput; ++j)
                     hoWeights[i][j] = weights[k++];
+            //node biases
+            for (int i = 0; i < numLayer; ++i)
+                for (int j = 0; j < numHidden; ++j)
+                    hBiases[i][j] = weights[k++];
+
+            //node -> node weights
+            for (int i = 0; i < numLayer; ++i)
+                for (int j = 0; j < numHidden; ++j)
+                    for (int m = 0; k < numHidden; ++k)
+                        nodeWeights[i][j][m] = weights[k++];
+
             //output biases
             for (int i = 0; i < numOutput; ++i)
                 oBiases[i] = weights[k++];
@@ -205,7 +119,8 @@ namespace NeuralNetwork
         public void InitializeWeights()
         {
             //initialize weights and biases to small random values
-            int numWeights = (numInput * numHidden) + (numHidden * numOutput) + numHidden + numOutput;
+            int numWeights = (numInput * numHidden) + (numHidden * numOutput) + (numHidden * numLayer) + (int)(Math.Pow(numHidden, numLayer)) + numOutput;
+                            //Input to 1st layer      last layer to output      node bias                Node to node (node^layer e.g. 3x3x3)   output bias
             double[] initialWeights = new double[numWeights];
             double lo = -0.01;
             double hi = 0.01;
@@ -220,17 +135,29 @@ namespace NeuralNetwork
         {
             //returns the current set of weights, presumably after training
             //basically reversed setweights
-            int numWeights = (numInput * numHidden) + (numHidden * numOutput) + numHidden + numOutput;
+            int numWeights = (numInput * numHidden) + (numHidden * numOutput) + (numHidden * numLayer) + (int)(Math.Pow(numHidden, numLayer)) + numOutput;
+                            //Input to 1st layer      last layer to output      node bias                Node to node (node^layer e.g. 3x3x3)   output bias
             double[] result = new double[numWeights];
             int k = 0;
+
+            //input -> 1st layer
             for (int i = 0; i < ihWeights.Length; ++i)
                 for (int j = 0; j < ihWeights[0].Length; ++j)
                     result[k++] = ihWeights[i][j];
-            for (int i = 0; i < hBiases.Length; ++i)
-                result[k++] = hBiases[i];
+            //last layer -> output layer
             for (int i = 0; i < hoWeights.Length; ++i)
                 for (int j = 0; j < hoWeights[0].Length; ++j)
                     result[k++] = hoWeights[i][j];
+            //node bias
+            for (int i = 0; i < hBiases.Length; ++i)
+                for(int j = 0; j < hBiases[0].Length; ++j)
+                    result[k++] = hBiases[i][j];
+            //node -> node weights  [layer][node1][node2]
+            for (int i = 0; i < nodeWeights.Length; ++i)
+                for (int j = 0; j < nodeWeights[0].Length; ++j)
+                    for (int m = 0; m < nodeWeights[0][0].Length; ++m)
+                        result[k++] = nodeWeights[i][j][m];
+            //output bias
             for (int i = 0; i < oBiases.Length; ++i)
                 result[k++] = oBiases[i];
             return result;
@@ -243,7 +170,7 @@ namespace NeuralNetwork
             if (xValues.Length != numInput)
                 throw new Exception("Bad xValues array length");
 
-            double[] hSums = new double[numHidden]; // hidden nodes sums scratch array
+            double[][] hSums = MakeMatrix(numLayer, numHidden); // hidden nodes sums scratch array
             double[] oSums = new double[numOutput]; // output nodes sums
 
             for (int i = 0; i < xValues.Length; ++i) // copy x-values to inputs
@@ -251,13 +178,32 @@ namespace NeuralNetwork
 
             for (int j = 0; j < numHidden; ++j)  // compute i-h sum of weights * inputs
                 for (int i = 0; i < numInput; ++i)
-                    hSums[j] += this.inputs[i] * this.ihWeights[i][j]; // note +=
+                    hSums[0][j] += this.inputs[i] * this.ihWeights[i][j]; // first layer of node
 
-            for (int i = 0; i < numHidden; ++i)  // add biases to input-to-hidden sums
-                hSums[i] += this.hBiases[i];
+            for (int i = 0; i < numHidden; ++i)  // add biases
+                hSums[0][i] += this.hBiases[0][i];
 
-            for (int i = 0; i < numHidden; ++i)   // apply activation
-                this.hOutputs[i] = HyperTanFunction(hSums[i]); // hard-coded
+            for (int i = 0; i < numHidden; ++i)
+                hSums[0][i] = HyperTanFunction(hSums[0][i]); // Gets hypertan
+
+            if (numLayer > 1)
+            {
+                for(int i = 1; i < numLayer; ++i) //layer starts at 1 because we've already calculated the 1st layer
+                {
+                    for (int j = 0; j < numHidden; ++j)
+                    {
+                        for (int m = 0; m < numHidden; ++m) // m represents the nodes from the last layer
+                            hSums[i][j] += this.nodeWeights[i - 1][m][j] * hSums[i - 1][m]; // weights * last layer sums
+                                                                                            //since nodeweights doesn't count the input to node weights
+
+                        hSums[i][j] += hBiases[i][j];   // adds bias
+
+                        hSums[i][j] = HyperTanFunction(hSums[i][j]);
+                    }
+                }
+            }
+
+            
 
             for (int j = 0; j < numOutput; ++j)   // compute h-o sum of weights * hOutputs
                 for (int i = 0; i < numHidden; ++i)
@@ -321,18 +267,24 @@ namespace NeuralNetwork
                 oGrads[i] = derivative * (tValues[i] - outputs[i]);
             }
 
+            //Hidden gradients add layer
+
             //2. compute hidden gradients
             for (int i = 0; i < hGrads.Length; ++i)
             {
-                //derivative of tanh = (1 - y)(1 + y)
-                double derivative = (1 - hOutputs[i]) * (1 + hOutputs[i]);
-                double sum = 0.0;
-                for (int j = 0; j < numOutput; ++j) // each hidden delta is the sum of numOutput terms
+                for(int k = 0; k < hGrads[0].Length; k++)
                 {
-                    double x = oGrads[j] * hoWeights[i][j];
-                    sum += x;
+                    //derivative of tanh = (1 - y)(1 + y)
+                    double derivative = (1 - hOutputs[i]) * (1 + hOutputs[i]);
+                    double sum = 0.0;
+                    for (int j = 0; j < numOutput; ++j) // each hidden delta is the sum of numOutput terms
+                    {
+                        double x = oGrads[j] * hoWeights[i][j];
+                        sum += x;
+                    }
+                    hGrads[i][k] = derivative * sum;
                 }
-                hGrads[i] = derivative * sum;
+                
             }
 
             // 3a. update hidden weights (gradients must be computed right-to-left but weights
@@ -351,13 +303,18 @@ namespace NeuralNetwork
             }
 
             // 3b. update hidden biases
+            // i = layer        j = node
             for (int i = 0; i < hBiases.Length; ++i)
             {
-                double delta = learnRate * hGrads[i] * 1.0; // t1.0 is constant input for bias; could leave out
-                hBiases[i] += delta;
-                hBiases[i] += momentum * hPrevBiasesDelta[i]; // momentum
-                hBiases[i] -= (weightDecay * hBiases[i]); // weight decay
-                hPrevBiasesDelta[i] = delta; // don't forget to save the delta
+                for(int j = 0; j < hBiases[0].Length; ++j)
+                {
+                    double delta = learnRate * hGrads[i] * 1.0; // t1.0 is constant input for bias; could leave out
+                    hBiases[i][j] += delta;
+                    hBiases[i][j] += momentum * hPrevBiasesDelta[i][j]; // momentum
+                    hBiases[i][j] -= (weightDecay * hBiases[i][j]); // weight decay
+                    hPrevBiasesDelta[i][j] = delta; // don't forget to save the delta
+                }
+                
             }
 
             // 4. update hidden-output weights

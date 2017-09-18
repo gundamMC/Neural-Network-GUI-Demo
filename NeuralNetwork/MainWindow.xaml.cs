@@ -28,6 +28,7 @@ namespace NeuralNetwork
         public int numInputs = 0;
         public int numOutputs = 0;
         public int numNodes = 0;
+        public int numLayers = 0;
 
         public string[] rawData;
 
@@ -127,6 +128,7 @@ namespace NeuralNetwork
             numInputs = int.Parse(numInputBox.Text);
             numOutputs = int.Parse(numOutputBox.Text);
             numNodes = int.Parse(numNodeBox.Text);
+            numLayers = int.Parse(numLayerBox.Text);
 
             ConsoleTextbox.Text += "\nSeparating train and test data.";
             MakeTrainTest(Instances, out double[][] trainData, out double[][] testData, TrainPercentSlider.Value / 100);
@@ -139,7 +141,7 @@ namespace NeuralNetwork
             Normalize(testData, inputs);        //Quick note: maybe we could normalize the data first and then separate them...?
 
             ConsoleTextbox.Text += "\nCreating neural network.";
-            NeuralNetworkObject nn = new NeuralNetworkObject(numInputs, numNodes, numOutputs);
+            NeuralNetworkObject nn = new NeuralNetworkObject(numInputs, numNodes, numLayers, numOutputs);
 
             ConsoleTextbox.Text += "\nInitializing weights.";
             nn.InitializeWeights();
