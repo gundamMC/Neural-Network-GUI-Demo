@@ -123,48 +123,48 @@ namespace NeuralNetwork
 
         private void StartNeuralNetwork()       //Assuming that GetInstances has already run and Instance has value
         {
-            ConsoleTextbox.Text = "Getting started...";
+            //ConsoleTextbox.Text = "Getting started...";
 
-            numInputs = int.Parse(numInputBox.Text);
-            numOutputs = int.Parse(numOutputBox.Text);
-            numNodes = int.Parse(numNodeBox.Text);
-            numLayers = int.Parse(numLayerBox.Text);
+            //numInputs = int.Parse(numInputBox.Text);
+            //numOutputs = int.Parse(numOutputBox.Text);
+            //numNodes = int.Parse(numNodeBox.Text);
+            //numLayers = int.Parse(numLayerBox.Text);
 
-            ConsoleTextbox.Text += "\nSeparating train and test data.";
-            MakeTrainTest(Instances, out double[][] trainData, out double[][] testData, TrainPercentSlider.Value / 100);
+            //ConsoleTextbox.Text += "\nSeparating train and test data.";
+            //MakeTrainTest(Instances, out double[][] trainData, out double[][] testData, TrainPercentSlider.Value / 100);
 
 
-            ConsoleTextbox.Text += "\nNormalizing all input datas.";
-            int[] inputs = Enumerable.Range(0, numInputs).ToArray(); //Creates int[] that generates 0,1,2...numInput -1 as numInput is the count
+            //ConsoleTextbox.Text += "\nNormalizing all input datas.";
+            //int[] inputs = Enumerable.Range(0, numInputs).ToArray(); //Creates int[] that generates 0,1,2...numInput -1 as numInput is the count
 
-            Normalize(trainData, inputs);
-            Normalize(testData, inputs);        //Quick note: maybe we could normalize the data first and then separate them...?
+            //Normalize(trainData, inputs);
+            //Normalize(testData, inputs);        //Quick note: maybe we could normalize the data first and then separate them...?
 
-            ConsoleTextbox.Text += "\nCreating neural network.";
-            NeuralNetworkObject nn = new NeuralNetworkObject(numInputs, numNodes, numLayers, numOutputs);
+            //ConsoleTextbox.Text += "\nCreating neural network.";
+            //NeuralNetworkObject nn = new NeuralNetworkObject(numInputs, numNodes, numLayers, numOutputs);
 
-            ConsoleTextbox.Text += "\nInitializing weights.";
-            nn.InitializeWeights();
+            //ConsoleTextbox.Text += "\nInitializing weights.";
+            //nn.InitializeWeights();
 
-            int MaxEpochs = int.Parse(MaxEpochBox.Text);
-            double LearnRate = double.Parse(LearnRateBox.Text);
-            double Momentum = Double.Parse(MomentumBox.Text);
-            double WeightDecay = Double.Parse(WeightDecayBox.Text);
-            double ExitError = Double.Parse(ExitErrorBox.Text);
+            //int MaxEpochs = int.Parse(MaxEpochBox.Text);
+            //double LearnRate = double.Parse(LearnRateBox.Text);
+            //double Momentum = Double.Parse(MomentumBox.Text);
+            //double WeightDecay = Double.Parse(WeightDecayBox.Text);
+            //double ExitError = Double.Parse(ExitErrorBox.Text);
 
-            ConsoleTextbox.Text += "\nTraining.";
-            nn.Train(trainData, MaxEpochs, LearnRate, Momentum, WeightDecay, ExitError);
-            ConsoleTextbox.Text += "\nTraining complete";
+            //ConsoleTextbox.Text += "\nTraining.";
+            //nn.Train(trainData, MaxEpochs, LearnRate, Momentum, WeightDecay, ExitError);
+            //ConsoleTextbox.Text += "\nTraining complete";
 
-            double[] weights = nn.GetWeights();
-            ConsoleTextbox.Text += "\nFinal neural network weights and bias values:";
-            ShowVector(weights, 10, 3, true);
+            //double[] weights = nn.GetWeights();
+            //ConsoleTextbox.Text += "\nFinal neural network weights and bias values:";
+            //ShowVector(weights, 10, 3, true);
 
-            double trainAcc = nn.Accuracy(trainData);
-            ConsoleTextbox.Text += "\nAccuracy on training data = " + trainAcc.ToString("F4");
+            //double trainAcc = nn.Accuracy(trainData);
+            //ConsoleTextbox.Text += "\nAccuracy on training data = " + trainAcc.ToString("F4");
 
-            double testAcc = nn.Accuracy(testData);
-            ConsoleTextbox.Text += "\nAccuracy on test data = " + testAcc.ToString("F4");
+            //double testAcc = nn.Accuracy(testData);
+            //ConsoleTextbox.Text += "\nAccuracy on test data = " + testAcc.ToString("F4");
         }
 
 
