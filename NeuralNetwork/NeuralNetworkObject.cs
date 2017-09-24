@@ -16,7 +16,7 @@ namespace NeuralNetwork
 
             public double Gradient { get; set; }
 
-            public double PreviousWeightDelta { get; set; }
+            public double[] PreviousWeightDelta { get; set; }
 
             public double PreviousBiasDelta { get; set; }
         }
@@ -245,7 +245,7 @@ namespace NeuralNetwork
             }
         }
 
-        private void BackPropagation(double[] OutputValues, double LearningRate, double Momentum, double WeightDecay)
+        private void BackPropagation(double[] TargetValues, double[] inputs, double LearningRate, double Momentum, double WeightDecay)
         {
             // 1. compute output gradients
             for(int i = 0; i < Outputs.Length; ++i)
@@ -254,13 +254,34 @@ namespace NeuralNetwork
                 double derivative = (1 - Outputs[i].Value) * Outputs[i].Value;
 
                 // mean squared error version includes (1-y)(y) derivative
-                Outputs[i].Gradient = derivative * (OutputValues[i] - Outputs[i].Value);
+                Outputs[i].Gradient = derivative * (Outputs[i].Value - TargetValues[i]);
             }
 
             // 2. compute node gradients
+            //
+            // Gradient = derivative of tan h * sum(gradient of last layer * weight of last layer) for (Nodes.length) times.
 
-            for (int layer = 0; layer < Network.Length; layer++)
-            {
+
+            // Calculates the last layer using Outputs first
+            for(int i = 0; i < Network[Network.Length - 1].Nodes.Length; i++)
+                    {
+                // derivate of tanh = (1-y)(1+y)
+
+                double derivative = (1 - Network[Network.Length - 1].Nodes[i].Value) * (1 + Network[Network.Length - 1].Nodes[i].Value);
+
+                double sum = 0.0;
+
+                for (int j = 0; j < numOutput; ++j)     // each hidden delta is the sum of numOutput terms
+                {
+                    sum += Outputs[j].Gradient * Outputs[j].Weights[i];
+                }
+
+                Network[Network.Length - 1].Nodes[i].Gradient = derivative * sum;
+            }
+
+            // Calculates the rest
+            for (int layer = Network.Length - 2; layer <= 0; layer++)   // Starting from the second-to-last layer and counting backwards
+
                 for(int i = 0; i < Network[layer].Nodes.Length; i++)
                 {
                     // derivate of tanh = (1-y)(1+y)
@@ -269,83 +290,81 @@ namespace NeuralNetwork
 
                     double sum = 0.0;
 
-                    for (int j = 0; j < numOutput; ++j)     // each hidden delta is the sum of numOutput terms
+                    for (int j = 0; j < Network[layer + 1].Nodes.Length; ++j)     // Geeting sum for the previous layer
                     {
-                        sum += Outputs[j].Gradient * Outputs[j].Weights[i];
+                        sum += Network[layer + 1].Nodes[j].Gradient * Network[layer + 1].Nodes[j].Weights[i];
                     }
+
+                    Network[layer].Nodes[i].Gradient = derivative * sum;
                 }
-            }
+
+
+            // 3a. Update node weights
+            //
+            // Delta Weight = Learningrate * Current node gradient * value of the last layer's node (connecting the weight)
+            // Weight = Weight + Delta Weight
+
+
+            // calculates the first layer using inputs first
+            for (int i = 0; i < Network[0].Nodes.Length; i++)
+
+                for (int j = 0; j < Network[0].Nodes[i].Weights.Length; j++)     // for each weight in each node in each layer
+                {
+                    double delta = LearningRate * Network[0].Nodes[i].Gradient * inputs[i];
+
+                    Network[0].Nodes[i].Weights[j] += delta;
+
+                    Network[0].Nodes[i].Weights[j] += Momentum * Network[0].Nodes[i].PreviousWeightDelta[j];
+
+                    Network[0].Nodes[i].Weights[j] -= WeightDecay * Network[0].Nodes[i].Weights[j];
+
+                    Network[0].Nodes[i].PreviousWeightDelta[j] = delta;
+                }
+
+            // then calculates the rest using the values of the nodes before
+            for (int layer = 1; layer < Network.Length; layer++)    // since gradients are already updated, it doesn't matter what order weights update in
+
+                for(int i = 0; i < Network[layer].Nodes.Length; i++)
+
+                    for(int j = 0; j < Network[layer].Nodes[i].Weights.Length; j++)     // for each weight in each node in each layer
+                    {
+                        double delta = LearningRate * Network[layer].Nodes[i].Gradient * Network[layer - 1].Nodes[i].Value;
+
+                        Network[layer].Nodes[i].Weights[j] += delta;
+
+                        Network[layer].Nodes[i].Weights[j] += Momentum * Network[layer].Nodes[i].PreviousWeightDelta[j];
+
+                        Network[layer].Nodes[i].Weights[j] -= WeightDecay * Network[layer].Nodes[i].Weights[j];
+
+                        Network[layer].Nodes[i].PreviousWeightDelta[j] = delta;
+                    }
+
+
+            // 3b. Update node bias
+            //
+            // Delta Bias = LearningRate * Gradient * 1.0       (1.0 is the constant input for bias, could leave out)
+            // Bias = Bias + DeltaBias
+
+            for (int layer = 0; layer < Network.Length; layer++)
+
+                for (int i = 0; i < Network[layer].Nodes.Length; i++)
+                {
+                    double delta = LearningRate * Network[layer].Nodes[i].Gradient;
+
+                    Network[layer].Nodes[i].Bias += delta;
+
+                    Network[layer].Nodes[i].Bias += Momentum * Network[layer].Nodes[i].PreviousBiasDelta;
+
+                    Network[layer].Nodes[i].Bias -= WeightDecay * Network[layer].Nodes[i].Bias;
+
+                    Network[layer].Nodes[i].PreviousBiasDelta = delta;
+                }
+
+
+            // 4a.
         }
- 
 
 
-        //private void UpdateWeights(double[] tValues, double learnRate, double momentum, double weightDecay)
-        //{
-        //    // update the weights and biases using back-propagation, with target values, eta (learning rate),
-        //    // alpha (momentum).
-        //    // assumes that SetWeights and ComputeOutputs have been called and so all the internal arrays
-        //    // and matrices have values (other than 0.0)
-        //    if (tValues.Length != numOutput)
-        //        throw new Exception("target values not same Length as output in UpdateWeights :");
-
-        //    //1. compute output gradients
-        //    for (int i = 0; i < oGrads.Length; ++i)
-        //    {
-        //        //derivative of softmax = (1 - y) * y (same as log-sigmoid)
-        //        double derivative = (1 - outputs[i]) * outputs[i];
-        //        // 'mean squared error version includes (1-y)(y) derivative
-        //        oGrads[i] = derivative * (tValues[i] - outputs[i]);
-        //    }
-
-        //    //Hidden gradients add layer
-
-        //    //2. compute hidden gradients
-        //    for (int i = 0; i < hGrads.Length; ++i)
-        //    {
-        //        for(int k = 0; k < hGrads[0].Length; k++)
-        //        {
-        //            //derivative of tanh = (1 - y)(1 + y)
-        //            double derivative = (1 - hOutputs[i]) * (1 + hOutputs[i]);
-        //            double sum = 0.0;
-        //            for (int j = 0; j < numOutput; ++j) // each hidden delta is the sum of numOutput terms
-        //            {
-        //                double x = oGrads[j] * hoWeights[i][j];
-        //                sum += x;
-        //            }
-        //            hGrads[i][k] = derivative * sum;
-        //        }
-
-        //    }
-
-        //    // 3a. update hidden weights (gradients must be computed right-to-left but weights
-        //    // can be updated in any order)
-        //    for (int i = 0; i < ihWeights.Length; ++i) // 0..2 (3)
-        //    {
-        //        for (int j = 0; j < ihWeights[0].Length; ++j) // 0..3 (4)
-        //        {
-        //            double delta = learnRate * hGrads[j] * inputs[i]; // compute the new delta
-        //            ihWeights[i][j] += delta; // update. note we use '+' instead of '-'. this can be very tricky.
-        //                                      // now add momentum using previous delta. on first pass old value will be 0.0 but that's OK.
-        //            ihWeights[i][j] += momentum * ihPrevWeightsDelta[i][j];
-        //            ihWeights[i][j] -= (weightDecay * ihWeights[i][j]); // weight decay
-        //            ihPrevWeightsDelta[i][j] = delta; // don't forget to save the delta for momentum 
-        //        }
-        //    }
-
-        //    // 3b. update hidden biases
-        //    // i = layer        j = node
-        //    for (int i = 0; i < hBiases.Length; ++i)
-        //    {
-        //        for(int j = 0; j < hBiases[0].Length; ++j)
-        //        {
-        //            double delta = learnRate * hGrads[i] * 1.0; // t1.0 is constant input for bias; could leave out
-        //            hBiases[i][j] += delta;
-        //            hBiases[i][j] += momentum * hPrevBiasesDelta[i][j]; // momentum
-        //            hBiases[i][j] -= (weightDecay * hBiases[i][j]); // weight decay
-        //            hPrevBiasesDelta[i][j] = delta; // don't forget to save the delta
-        //        }
-
-        //    }
 
         //    // 4. update hidden-output weights
         //    for (int i = 0; i < hoWeights.Length; ++i)
