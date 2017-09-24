@@ -50,18 +50,44 @@ namespace NeuralNetwork
             Network = new Layer[layerdata.Length];  //Hidden layers + input layer + output layer
 
             for (int i = 0; i < layerdata.Length; i++)
-                Network[i].Nodes = new Node[layerdata[i]];      // Set up amount of nodes for each layer
+                Network[i] = new Layer();
 
+            for (int i = 0; i < layerdata.Length; i++)
+            {
+                Network[i].Nodes = new Node[layerdata[i]];      // Set up amount of nodes for each layer
+                for (int j = 0; j < layerdata[i]; j++)
+                    Network[i].Nodes[j] = new Node();
+            }
 
             for (int i = 0; i < Network[0].Nodes.Length; i++)       // Set up nodes for intput -> layer 1
                 Network[0].Nodes[i].Weights = new double[numInput];
 
             for (int i = 1; i < Network.Length; i++)
-                for (int j = 0; j < Network[i].Nodes.Length; j++)    // Set up rest of the weights
+                for (int j = 0; j < Network[i].Nodes.Length; j++)
+                {
+                    // Set up rest of the weights
                     Network[i].Nodes[j].Weights = new double[Network[i - 1].Nodes.Length];
 
+                    Network[i].Nodes[j].PreviousWeightDelta = new double[Network[i - 1].Nodes.Length];
+
+                    for (int k = 0; k < Network[i].Nodes[j].PreviousWeightDelta.Length; k++)
+                        Network[i].Nodes[j].PreviousWeightDelta[k] = 0;
+                }
+
+
+            for (int i = 0; i < numOutput; i++)
+                Outputs[i] = new Node();
+
             for (int i = 0; i < Outputs.Length; i++)
+            {
                 Outputs[i].Weights = new double[Network[Network.Length - 1].Nodes.Length];  // Output layer weights
+
+                Outputs[i].PreviousWeightDelta = new double[Network[Network.Length - 1].Nodes.Length];
+
+                for (int j = 0; j < Outputs[i].PreviousWeightDelta.Length; j++)
+                    Outputs[i].PreviousWeightDelta[j] = 0;
+            }
+                
         }
 
         public void InitializeWeights()
@@ -221,7 +247,7 @@ namespace NeuralNetwork
         {
             int epoch = 0;
             double[] InputValues = new double[numInput];
-            double[] OutputValues = new double[numOutput];
+            double[] TargetValues = new double[numOutput];
 
             int[] sequence = new int[TrainData.Length];
             for (int i = 0; i < sequence.Length; ++i)
@@ -237,9 +263,9 @@ namespace NeuralNetwork
                 {
                     int idx = sequence[i];
                     Array.Copy(TrainData[idx], InputValues, numInput); //copies input data
-                    Array.Copy(TrainData[idx], numInput, OutputValues, 0, numOutput); //copies output data
+                    Array.Copy(TrainData[idx], numInput, TargetValues, 0, numOutput); //copies output data
                     Calculate(InputValues); // copy xValues in, compute outputs (store them internally)
-                    //UpdateWeights(tValues, learnRate, momentum, weightDecay); // find better weights
+                    BackPropagation(TargetValues, InputValues, LearningRate, Momentum, WeightDecay); // find better weights
                 } // each training tuple
                 ++epoch;
             }
@@ -271,7 +297,7 @@ namespace NeuralNetwork
 
                 double sum = 0.0;
 
-                for (int j = 0; j < numOutput; ++j)     // each hidden delta is the sum of numOutput terms
+                for (int j = 0; j < numOutput; ++j)     // for each output
                 {
                     sum += Outputs[j].Gradient * Outputs[j].Weights[i];
                 }
@@ -280,7 +306,7 @@ namespace NeuralNetwork
             }
 
             // Calculates the rest
-            for (int layer = Network.Length - 2; layer <= 0; layer++)   // Starting from the second-to-last layer and counting backwards
+            for (int layer = Network.Length - 2; layer >= 0; layer++)   // Starting from the second-to-last layer and counting backwards
 
                 for(int i = 0; i < Network[layer].Nodes.Length; i++)
                 {
@@ -308,17 +334,17 @@ namespace NeuralNetwork
             // calculates the first layer using inputs first
             for (int i = 0; i < Network[0].Nodes.Length; i++)
 
-                for (int j = 0; j < Network[0].Nodes[i].Weights.Length; j++)     // for each weight in each node in each layer
+                for (int j = 0; j < Network[0].Nodes[i].Weights.Length; j++)     // for each weight in each node
                 {
-                    double delta = LearningRate * Network[0].Nodes[i].Gradient * inputs[i];
+                    double delta = LearningRate * Network[0].Nodes[i].Gradient * inputs[j];
 
                     Network[0].Nodes[i].Weights[j] += delta;
 
-                    Network[0].Nodes[i].Weights[j] += Momentum * Network[0].Nodes[i].PreviousWeightDelta[j];
+                    //Network[0].Nodes[i].Weights[j] += Momentum * Network[0].Nodes[i].PreviousWeightDelta[j];
 
                     Network[0].Nodes[i].Weights[j] -= WeightDecay * Network[0].Nodes[i].Weights[j];
 
-                    Network[0].Nodes[i].PreviousWeightDelta[j] = delta;
+                    //Network[0].Nodes[i].PreviousWeightDelta[j] = delta;
                 }
 
             // then calculates the rest using the values of the nodes before
@@ -328,15 +354,15 @@ namespace NeuralNetwork
 
                     for(int j = 0; j < Network[layer].Nodes[i].Weights.Length; j++)     // for each weight in each node in each layer
                     {
-                        double delta = LearningRate * Network[layer].Nodes[i].Gradient * Network[layer - 1].Nodes[i].Value;
+                        double delta = LearningRate * Network[layer].Nodes[i].Gradient * Network[layer - 1].Nodes[j].Value;
 
                         Network[layer].Nodes[i].Weights[j] += delta;
 
-                        Network[layer].Nodes[i].Weights[j] += Momentum * Network[layer].Nodes[i].PreviousWeightDelta[j];
+                        //Network[layer].Nodes[i].Weights[j] += Momentum * Network[layer].Nodes[i].PreviousWeightDelta[j];
 
                         Network[layer].Nodes[i].Weights[j] -= WeightDecay * Network[layer].Nodes[i].Weights[j];
 
-                        Network[layer].Nodes[i].PreviousWeightDelta[j] = delta;
+                        //Network[layer].Nodes[i].PreviousWeightDelta[j] = delta;
                     }
 
 
@@ -353,44 +379,105 @@ namespace NeuralNetwork
 
                     Network[layer].Nodes[i].Bias += delta;
 
-                    Network[layer].Nodes[i].Bias += Momentum * Network[layer].Nodes[i].PreviousBiasDelta;
+                    //Network[layer].Nodes[i].Bias += Momentum * Network[layer].Nodes[i].PreviousBiasDelta;
 
                     Network[layer].Nodes[i].Bias -= WeightDecay * Network[layer].Nodes[i].Bias;
 
-                    Network[layer].Nodes[i].PreviousBiasDelta = delta;
+                    //Network[layer].Nodes[i].PreviousBiasDelta = delta;
                 }
 
 
-            // 4a.
+            // 4a. Update output weights
+
+            for(int i = 0; i < Outputs.Length; i++)
+                for(int j = 0; j < Outputs[i].Weights.Length; j++)
+                {
+                    double delta = LearningRate * Outputs[i].Gradient * Network[Network.Length - 1].Nodes[j].Value;
+                    Outputs[i].Weights[j] += delta;
+                    //Outputs[i].Weights[j] += Momentum * Outputs[i].PreviousWeightDelta[j];
+                    Outputs[i].Weights[j] -= WeightDecay * Outputs[i].Weights[j];
+                    //Outputs[i].PreviousWeightDelta[j] = delta;
+                }
+
+            //4b. Update output bias
+            for (int i = 0; i < Outputs.Length; i++)
+            {
+                double delta = LearningRate * Outputs[i].Gradient;
+                Outputs[i].Bias += delta;
+                //Outputs[i].Bias += Momentum * Outputs[i].PreviousBiasDelta;
+                Outputs[i].Bias -= WeightDecay * Outputs[i].Bias;
+                //Outputs[i].PreviousBiasDelta = delta;
+            }
+        }   // Backpropagation
+
+        
+        public double[] GetWeights()
+        {
+            int nodeWeights = 0;
+            int totalNodes = 0;
+
+            for (int i = 0; i < Network.Length - 1; i++)
+            {
+                nodeWeights += Network[i].Nodes.Length * Network[i + 1].Nodes.Length;
+                totalNodes += Network[i].Nodes.Length;
+            }
+
+            totalNodes += Network[Network.Length - 1].Nodes.Length;
+
+            int numWeights = (numInput * Network[0].Nodes.Length) + (nodeWeights) + (totalNodes) + (Network[Network.Length - 1].Nodes.Length * numOutput) + numOutput;
+            //Input to 1st layer               Node to node weights  node bias                   Last layer to output                     output bias
+
+            double[] result = new double[numWeights];
+
+            int index = 0;
+
+            for (int layer = 0; layer < Network.Length; layer++)
+                for (int i = 0; i < Network[layer].Nodes.Length; i++)
+                    for(int j = 0; j < Network[layer].Nodes[i].Weights.Length; j++)
+                        result[index++] = Network[layer].Nodes[i].Weights[j];
+
+            return result;
         }
 
+        public double Accuracy(double[][] TestData)
+        {
+            int numCorrect = 0;
+            int numWrong = 0;
+            double[] InputValues = new double[numInput];
+            double[] TargetValues = new double[numOutput];
+            double[] CalculatedValues;
 
+            for (int i = 0; i < TestData.Length; ++i)
+            {
+                Array.Copy(TestData[i], InputValues, numInput);                // Copy input data
+                Array.Copy(TestData[i], numInput, TargetValues, 0, numOutput);  // Copy output data
+                double[] yValues = Calculate(InputValues); // compute output using current weights
+                CalculatedValues = Calculate(InputValues);
 
-        //    // 4. update hidden-output weights
-        //    for (int i = 0; i < hoWeights.Length; ++i)
-        //    {
-        //        for (int j = 0; j < hoWeights[0].Length; ++j)
-        //        {
-        //            // see above: hOutputs are inputs to the nn outputs
-        //            double delta = learnRate * oGrads[j] * hOutputs[i];
-        //            hoWeights[i][j] += delta;
-        //            hoWeights[i][j] += momentum * hoPrevWeightsDelta[i][j]; // momentum
-        //            hoWeights[i][j] -= (weightDecay * hoWeights[i][j]); // weight decay
-        //            hoPrevWeightsDelta[i][j] = delta; // save
-        //        }
-        //    }
+                if (TargetValues[MaxIndex(CalculatedValues)] == 1.0)
+                    ++numCorrect;
+                else
+                    ++numWrong;
 
-        //    // 4b. update output biases
-        //    for (int i = 0; i < oBiases.Length; ++i)
-        //    {
-        //        double delta = learnRate * oGrads[i] * 1.0;
-        //        oBiases[i] += delta;
-        //        oBiases[i] += momentum * oPrevBiasesDelta[i]; // momentum
-        //        oBiases[i] -= (weightDecay * oBiases[i]); // weight decay
-        //        oPrevBiasesDelta[i] = delta; // save
-        //    }
+            }
+            return (numCorrect * 1.0) / (numCorrect + numWrong);
+        }
 
-        //} // UpdateWeights
+        private static int MaxIndex(double[] vector)
+        {
+            int LargestIndex = 0;
+            double LargesttVector = vector[0];
+            
+            for(int i = 0; i < vector.Length; i++)
+                if(vector[i] > LargesttVector)
+                {
+                    LargesttVector = vector[i];
+                    LargestIndex = i;
+                }
+
+            return LargestIndex;
+        }
+
 
         //private static Random rnd;
 

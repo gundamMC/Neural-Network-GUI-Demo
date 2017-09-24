@@ -22,21 +22,21 @@
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
-        <TextBox x:Name="numInputBox" HorizontalAlignment="Left" Height="30" Margin="210,80,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
-        <TextBox x:Name="numNodeBox" HorizontalAlignment="Left" Height="30" Margin="210,150,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
-        <TextBox x:Name="numOutputBox" HorizontalAlignment="Left" Height="30" Margin="210,290,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
+        <TextBox x:Name="numInputBox" HorizontalAlignment="Left" Height="30" Margin="210,80,0,0" TextWrapping="Wrap" Text="4" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
+        <TextBox x:Name="numNodeBox" HorizontalAlignment="Left" Height="30" Margin="210,150,0,0" TextWrapping="Wrap" Text="7" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
+        <TextBox x:Name="numOutputBox" HorizontalAlignment="Left" Height="30" Margin="210,290,0,0" TextWrapping="Wrap" Text="3" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
         <TextBox x:Name="separatorBox" HorizontalAlignment="Left" Height="34" Margin="10,28,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="48" MaxLength="1"/>
-        <TextBox x:Name="MaxEpochBox" HorizontalAlignment="Left" Height="30" Margin="360,80,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
-        <TextBox x:Name="LearnRateBox" HorizontalAlignment="Left" Height="30" Margin="360,150,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="DoubleOnly"/>
-        <TextBox x:Name="MomentumBox" HorizontalAlignment="Left" Height="30" Margin="360,220,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="DoubleOnly"/>
-        <TextBox x:Name="WeightDecayBox" HorizontalAlignment="Left" Height="30" Margin="360,290,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="DoubleOnly"/>
-        <TextBox x:Name="ExitErrorBox" HorizontalAlignment="Left" Height="30" Margin="510,80,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="DoubleOnly"/>
+        <TextBox x:Name="MaxEpochBox" HorizontalAlignment="Left" Height="30" Margin="360,80,0,0" TextWrapping="Wrap" Text="2000" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
+        <TextBox x:Name="LearnRateBox" HorizontalAlignment="Left" Height="30" Margin="360,150,0,0" TextWrapping="Wrap" Text="0.05" VerticalAlignment="Top" Width="94" PreviewTextInput="DoubleOnly"/>
+        <TextBox x:Name="MomentumBox" HorizontalAlignment="Left" Height="30" Margin="360,220,0,0" TextWrapping="Wrap" Text="0.01" VerticalAlignment="Top" Width="94" PreviewTextInput="DoubleOnly"/>
+        <TextBox x:Name="WeightDecayBox" HorizontalAlignment="Left" Height="30" Margin="360,290,0,0" TextWrapping="Wrap" Text="0.0001" VerticalAlignment="Top" Width="94" PreviewTextInput="DoubleOnly"/>
+        <TextBox x:Name="ExitErrorBox" HorizontalAlignment="Left" Height="30" Margin="510,80,0,0" TextWrapping="Wrap" Text="0.02" VerticalAlignment="Top" Width="94" PreviewTextInput="DoubleOnly"/>
         <TextBox x:Name="ConsoleTextbox" HorizontalAlignment="Left" Height="175" Margin="210,340,0,0" TextWrapping="Wrap" Text="Please load data file first" VerticalAlignment="Top" Width="420" FontFamily="Microsoft YaHei UI" VerticalScrollBarVisibility="Visible" UseLayoutRounding="True" IsReadOnly="True" IsUndoEnabled="False"/>
         <Button x:Name="StartButton" Content="Start" HorizontalAlignment="Left" Height="75" Margin="10,440,0,0" VerticalAlignment="Top" Width="178" FontFamily="Microsoft YaHei UI" Click="StartButton_Click"/>
         <Label Content="Input nodes" HorizontalAlignment="Left" Height="28" Margin="210,50,0,0" VerticalAlignment="Top" Width="94"/>
         <Label Content="Nodes per layer" HorizontalAlignment="Left" Height="28" Margin="210,120,0,0" VerticalAlignment="Top" Width="94"/>
         <Label Content="Output nodes" HorizontalAlignment="Left" Height="28" Margin="210,260,0,0" VerticalAlignment="Top" Width="94"/>
-        <TextBox x:Name="numLayerBox" HorizontalAlignment="Left" Height="30" Margin="210,220,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
+        <TextBox x:Name="numLayerBox" HorizontalAlignment="Left" Height="30" Margin="210,220,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="94" PreviewTextInput="NumericalOnly"/>
         <Label Content="Hidden layers" HorizontalAlignment="Left" Height="28" Margin="210,190,0,0" VerticalAlignment="Top" Width="94"/>
         <Label Content="Max epoch" HorizontalAlignment="Left" Height="28" Margin="360,50,0,0" VerticalAlignment="Top" Width="94"/>
         <Label Content="Learning rate" HorizontalAlignment="Left" Height="28" Margin="360,120,0,0" VerticalAlignment="Top" Width="94"/>
