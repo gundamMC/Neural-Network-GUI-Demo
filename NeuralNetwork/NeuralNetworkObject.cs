@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Windows;
 
 namespace NeuralNetwork
 {
@@ -87,7 +88,6 @@ namespace NeuralNetwork
                 for (int j = 0; j < Outputs[i].PreviousWeightDelta.Length; j++)
                     Outputs[i].PreviousWeightDelta[j] = 0;
             }
-                
         }
 
         public void InitializeWeights()
@@ -280,7 +280,7 @@ namespace NeuralNetwork
                 double derivative = (1 - Outputs[i].Value) * Outputs[i].Value;
 
                 // mean squared error version includes (1-y)(y) derivative
-                Outputs[i].Gradient = derivative * (Outputs[i].Value - TargetValues[i]);
+                Outputs[i].Gradient = derivative * (TargetValues[i] - Outputs[i].Value);
             }
 
             // 2. compute node gradients
@@ -306,7 +306,7 @@ namespace NeuralNetwork
             }
 
             // Calculates the rest
-            for (int layer = Network.Length - 2; layer >= 0; layer++)   // Starting from the second-to-last layer and counting backwards
+            for (int layer = Network.Length - 2; layer >= 0; layer--)   // Starting from the second-to-last layer and counting backwards
 
                 for(int i = 0; i < Network[layer].Nodes.Length; i++)
                 {
@@ -342,7 +342,7 @@ namespace NeuralNetwork
 
                     //Network[0].Nodes[i].Weights[j] += Momentum * Network[0].Nodes[i].PreviousWeightDelta[j];
 
-                    Network[0].Nodes[i].Weights[j] -= WeightDecay * Network[0].Nodes[i].Weights[j];
+                    Network[0].Nodes[i].Weights[j] -= (WeightDecay * Network[0].Nodes[i].Weights[j]);
 
                     //Network[0].Nodes[i].PreviousWeightDelta[j] = delta;
                 }
@@ -360,7 +360,7 @@ namespace NeuralNetwork
 
                         //Network[layer].Nodes[i].Weights[j] += Momentum * Network[layer].Nodes[i].PreviousWeightDelta[j];
 
-                        Network[layer].Nodes[i].Weights[j] -= WeightDecay * Network[layer].Nodes[i].Weights[j];
+                        Network[layer].Nodes[i].Weights[j] -= (WeightDecay * Network[layer].Nodes[i].Weights[j]);
 
                         //Network[layer].Nodes[i].PreviousWeightDelta[j] = delta;
                     }
@@ -381,7 +381,7 @@ namespace NeuralNetwork
 
                     //Network[layer].Nodes[i].Bias += Momentum * Network[layer].Nodes[i].PreviousBiasDelta;
 
-                    Network[layer].Nodes[i].Bias -= WeightDecay * Network[layer].Nodes[i].Bias;
+                    Network[layer].Nodes[i].Bias -= (WeightDecay * Network[layer].Nodes[i].Bias);
 
                     //Network[layer].Nodes[i].PreviousBiasDelta = delta;
                 }
@@ -395,7 +395,7 @@ namespace NeuralNetwork
                     double delta = LearningRate * Outputs[i].Gradient * Network[Network.Length - 1].Nodes[j].Value;
                     Outputs[i].Weights[j] += delta;
                     //Outputs[i].Weights[j] += Momentum * Outputs[i].PreviousWeightDelta[j];
-                    Outputs[i].Weights[j] -= WeightDecay * Outputs[i].Weights[j];
+                    Outputs[i].Weights[j] -= (WeightDecay * Outputs[i].Weights[j]);
                     //Outputs[i].PreviousWeightDelta[j] = delta;
                 }
 

@@ -1,9 +1,13 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace NeuralNetwork
@@ -17,6 +21,7 @@ namespace NeuralNetwork
         {
             InitializeComponent();
             TypeToIntGrid.ItemsSource = TypeIntsList;
+            
         }
 
         
@@ -29,6 +34,12 @@ namespace NeuralNetwork
         public int numOutputs = 0;
         public int numNodes = 0;
         public int numLayers = 0;
+
+        public int MaxEpochs = 0;
+        public double LearnRate = 0;
+        public double Momentum = 0;
+        public double WeightDecay = 0;
+        public double ExitError = 0;
 
         public string[] rawData;
 
@@ -53,7 +64,7 @@ namespace NeuralNetwork
 
 
                 GetStringOptions(rawData, ',');
-                ConsoleTextbox.Text = "Loaded data.";
+                Log("Loaded data.");
             }
         }
 
@@ -105,7 +116,7 @@ namespace NeuralNetwork
             TypeToIntGrid.Items.Refresh();  //refreshes the grid (new items won't show without this)
         }
 
-        double[][] GetInstances(string[] lines, char separator)
+        static double [][] GetInstances(string[] lines, char separator)
         {
 
             double[][] result = new double[lines.Count()][]; //2 dimension array, total data * features
@@ -123,24 +134,38 @@ namespace NeuralNetwork
 
         private void StartNeuralNetwork()       //Assuming that GetInstances has already run and Instance has value
         {
-            ConsoleTextbox.Text = "Getting started...";
+            double SliderValue = 0;
 
-            numInputs = int.Parse(numInputBox.Text);
-            numOutputs = int.Parse(numOutputBox.Text);
-            numNodes = int.Parse(numNodeBox.Text);
-            numLayers = int.Parse(numLayerBox.Text);
+            Dispatcher.Invoke(() =>
+            {
 
-            ConsoleTextbox.Text += "\nSeparating train and test data.";
-            MakeTrainTest(Instances, out double[][] trainData, out double[][] testData, TrainPercentSlider.Value / 100);
+                numInputs = int.Parse(numInputBox.Text);
+                numOutputs = int.Parse(numOutputBox.Text);
+                numNodes = int.Parse(numNodeBox.Text);
+                numLayers = int.Parse(numLayerBox.Text);
 
+                MaxEpochs = int.Parse(MaxEpochBox.Text);
+                LearnRate = double.Parse(LearnRateBox.Text);
+                Momentum = double.Parse(MomentumBox.Text);
+                WeightDecay = double.Parse(WeightDecayBox.Text);
+                ExitError = double.Parse(ExitErrorBox.Text);
 
-            ConsoleTextbox.Text += "\nNormalizing all input datas.";
+                SliderValue = TrainPercentSlider.Value;
+
+                Log("Getting started...");
+
+                Log("Separating train and test data.");
+            });
+            
+            MakeTrainTest(Instances, out double[][] trainData, out double[][] testData, SliderValue / 100);
+
+            Dispatcher.Invoke(() => Log("Normalizing all input data"));
             int[] inputs = Enumerable.Range(0, numInputs).ToArray(); //Creates int[] that generates 0,1,2...numInput -1 as numInput is the count
 
             Normalize(trainData, inputs);
             Normalize(testData, inputs);        //Quick note: maybe we could normalize the data first and then separate them...?
 
-            ConsoleTextbox.Text += "\nCreating neural network.";
+            Dispatcher.Invoke(() => Log("Creating neural network"));
 
             int[] Layers = new int[numLayers];
             for (int i = 0; i < Layers.Length; i++)
@@ -149,28 +174,28 @@ namespace NeuralNetwork
 
             NeuralNetworkObject nn = new NeuralNetworkObject(numInputs, numOutputs, Layers);
 
-            ConsoleTextbox.Text += "\nInitializing weights.";
+            Dispatcher.Invoke(() => Log("Initializing weights"));
             nn.InitializeWeights();
 
-            int MaxEpochs = int.Parse(MaxEpochBox.Text);
-            double LearnRate = double.Parse(LearnRateBox.Text);
-            double Momentum = Double.Parse(MomentumBox.Text);
-            double WeightDecay = Double.Parse(WeightDecayBox.Text);
-            double ExitError = Double.Parse(ExitErrorBox.Text);
 
-            ConsoleTextbox.Text += "\nTraining.";
+
+            Dispatcher.Invoke(() => Log("Training..."));
             nn.Train(trainData, MaxEpochs, LearnRate, Momentum, WeightDecay, ExitError);
-            ConsoleTextbox.Text += "\nTraining complete";
+            Dispatcher.Invoke(() => Log("Training complete"));
 
             double[] weights = nn.GetWeights();
-            ConsoleTextbox.Text += "\nFinal neural network weights and bias values:";
-            ShowVector(weights, 10, 3, true);
+           Dispatcher.Invoke(() => {
+               Log("Final Weights and values: ");
+               ShowVector(weights, 10, 3, true);
+           });
 
             double trainAcc = nn.Accuracy(trainData);
-            ConsoleTextbox.Text += "\nAccuracy on training data = " + trainAcc.ToString("F4");
+            Dispatcher.Invoke(() => Log("Accuracy on training data = " + trainAcc.ToString("F4")));
 
             double testAcc = nn.Accuracy(testData);
-            ConsoleTextbox.Text += "\nAccuracy on test data = " + testAcc.ToString("F4");
+            Dispatcher.Invoke(() => Log("Accuracy on test data = " + testAcc.ToString("F4")));
+
+            Console.WriteLine("Done");
         }
 
 
@@ -271,6 +296,12 @@ namespace NeuralNetwork
             if (newLine == true) ConsoleTextbox.Text += "\n";
         }
 
+        private void Log(string text)
+        {
+            string line = string.Format("{0:HH:mm:ss.fff}: {1}\r\n", DateTime.Now, text);
+            ConsoleTextbox.AppendText(line);
+        }
+
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
 
@@ -299,9 +330,19 @@ namespace NeuralNetwork
                 return;
             }
 
+            
+
             Instances = GetInstances(rawData, Char.Parse(separatorBox.Text));
 
-            StartNeuralNetwork();
+            Console.WriteLine("HA");
+
+            ThreadStart NeuralNetworkThreadStart = (StartNeuralNetwork);
+
+
+            Thread NeuralNetworkThread = new Thread(NeuralNetworkThreadStart);
+
+            NeuralNetworkThread.Start();
+
         }
     } //public class Mainwindow
 
