@@ -70,9 +70,9 @@ namespace NeuralNetwork
 
         void GetStringOptions(string[] lines, char separator)
         {
-            string[][] splitedData = new string[lines.Count()][]; //2 dimension array, total data * features
+            string[][] splitedData = new string[lines.Length][]; //2 dimension array, total data * features
 
-            for (int i = 0; i < lines.Count(); ++i)
+            for (int i = 0; i < lines.Length; i++)
             {
                 splitedData[i] = lines[i].Split(separator);
             }
@@ -80,7 +80,7 @@ namespace NeuralNetwork
             List<int> stringColumns  = new List<int>();
             
 
-            for (int i = 0; i < splitedData[0].Count(); ++i)
+            for (int i = 0; i < splitedData[0].Count(); i++)
             {
                 if(!double.TryParse(splitedData[0][i], out double value)) //if value does not parse as double
                     stringColumns.Add(i);
@@ -93,7 +93,7 @@ namespace NeuralNetwork
                 int options = 0;
                 int startingIndex = TypeIntsList.Count(); //index of the first item
 
-                for (int j = 0; j < splitedData.Count(); ++j)
+                for (int j = 0; j < splitedData.Length; j++)
                 {
                     if(!TypeIntsList.Any(x => x.Name == splitedData[j][i]))     // adds value to list, also counts how many total options there are
                     {
@@ -171,29 +171,44 @@ namespace NeuralNetwork
             for (int i = 0; i < Layers.Length; i++)
                 Layers[i] = numNodes;
 
+            Network net = new Network();
+            net.NodeSize = Layers;
 
-            NeuralNetworkObject nn = new NeuralNetworkObject(numInputs, numOutputs, Layers);
+            double[][] input = new double[trainData.Length][];
+            double[][] outputs = new double[trainData.Length][];
 
-            Dispatcher.Invoke(() => Log("Initializing weights"));
-            nn.InitializeWeights();
+            for (int i = 0; i < trainData.Length; ++i)
+            {
+                input[i] = new double[numInputs];
+                outputs[i] = new double[numOutputs];
+                Array.Copy(trainData[i], input[i], numInputs); //copies input data
+                Array.Copy(trainData[i], numInputs, outputs[i], 0, numOutputs); //copies output data
+            }
+
+            net.Train(input, outputs);
+
+           // NeuralNetworkObject nn = new NeuralNetworkObject(numInputs, numOutputs, Layers);
+
+           // Dispatcher.Invoke(() => Log("Initializing weights"));
+           // nn.InitializeWeights();
 
 
 
-            Dispatcher.Invoke(() => Log("Training..."));
-            nn.Train(trainData, MaxEpochs, LearnRate, Momentum, WeightDecay, ExitError);
-            Dispatcher.Invoke(() => Log("Training complete"));
+           // Dispatcher.Invoke(() => Log("Training..."));
+           // nn.Train(trainData, MaxEpochs, LearnRate, Momentum, WeightDecay, ExitError);
+           // Dispatcher.Invoke(() => Log("Training complete"));
 
-            double[] weights = nn.GetWeights();
-           Dispatcher.Invoke(() => {
-               Log("Final Weights and values: ");
-               ShowVector(weights, 10, 3, true);
-           });
+           // double[] weights = nn.GetWeights();
+           //Dispatcher.Invoke(() => {
+           //    Log("Final Weights and values: ");
+           //    ShowVector(weights, 10, 3, true);
+           //});
 
-            double trainAcc = nn.Accuracy(trainData);
-            Dispatcher.Invoke(() => Log("Accuracy on training data = " + trainAcc.ToString("F4")));
+           // double trainAcc = nn.Accuracy(trainData);
+           // Dispatcher.Invoke(() => Log("Accuracy on training data = " + trainAcc.ToString("F4")));
 
-            double testAcc = nn.Accuracy(testData);
-            Dispatcher.Invoke(() => Log("Accuracy on test data = " + testAcc.ToString("F4")));
+           // double testAcc = nn.Accuracy(testData);
+           // Dispatcher.Invoke(() => Log("Accuracy on test data = " + testAcc.ToString("F4")));
 
             Console.WriteLine("Done");
         }
