@@ -1,7 +1,6 @@
 # Neural Network GUI Demo
 ----
-Just a random wpf program that tries to create a visualizable neural network
-*still in development, meaning that it will not work*
+A wpf visualization of creating artificial neural networks with multiple layers.
 
 License
 ----
